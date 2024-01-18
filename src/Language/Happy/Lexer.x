@@ -47,6 +47,7 @@ tokens :-
 <0>		"%lexer"				{ mkL KwLexer }
 <0>		"%monad"				{ mkL KwMonad }
 <0>		"%name"					{ mkL KwName }
+<0>		"%prec"					{ mkL KwPrec }
 <0>		"%right"				{ mkL KwRight }
 <0>		"%token"				{ mkL KwToken }
 <0>		"%tokentype"				{ mkL KwTokentype }

@@ -7,7 +7,7 @@ import qualified Data.ByteString.Lazy     as LBS
 import           Data.Text                (Text)
 import qualified Data.Text                as Text
 import qualified Data.Text.Encoding       as Text
-import           Language.Happy.Arbitrary (genTokens)
+import           Language.Happy.Arbitrary (defConfig, genTokens)
 import           Language.Happy.Ast       (Node)
 import           Language.Happy.Lexer     (Lexeme, runAlex)
 import           Language.Happy.Parser    (parseGrammar)
@@ -29,6 +29,7 @@ sampleToken c = case c of
     KwLexer            -> "%lexer"
     KwMonad            -> "%monad"
     KwName             -> "%name"
+    KwPrec             -> "%prec"
     KwRight            -> "%right"
     KwToken            -> "%token"
     KwTokentype        -> "%tokentype"
@@ -60,7 +61,7 @@ spec :: Spec
 spec = tryParseGrammar $ \g -> do
     describe "genTokens" $ do
         it "generates sequences that can be parsed again using the same grammar" $
-            forAll (Text.intercalate " " . map (sampleToken . parseToken) <$> genTokens "Grammar" g) $ \code -> do
+            forAll (Text.intercalate " " . map sampleToken <$> genTokens (defConfig parseToken) "Grammar" g) $ \code -> do
                 case runAlex (LBS.fromStrict . Text.encodeUtf8 $ code) parseGrammar of
                     Left err -> expectationFailure err
                     Right ok -> print ok

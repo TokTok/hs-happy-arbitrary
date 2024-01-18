@@ -39,7 +39,7 @@ library
     , data-fix
     , extra
     , file-embed
-    , recursion-schemes
+    , mtl
     , text
     , transformers-compat
 

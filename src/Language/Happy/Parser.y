@@ -30,7 +30,7 @@ import           Language.Happy.Tokens (LexemeClass (..))
 %token
     ID_NAME			{ L _ IdName			_ }
 
-    '{}'			{ L _ LitCode			_ }
+    '{code}'			{ L _ LitCode			_ }
 
     '%errorhandlertype'		{ L _ KwErrorhandlertype	_ }
     '%error'			{ L _ KwError			_ }
@@ -39,6 +39,7 @@ import           Language.Happy.Tokens (LexemeClass (..))
     '%lexer'			{ L _ KwLexer			_ }
     '%monad'			{ L _ KwMonad			_ }
     '%name'			{ L _ KwName			_ }
+    '%prec'			{ L _ KwPrec			_ }
     '%right'			{ L _ KwRight			_ }
     '%token'			{ L _ KwToken			_ }
     '%tokentype'		{ L _ KwTokentype		_ }
@@ -59,8 +60,8 @@ Grammar
 
 Code :: { [Term] }
 Code
-:	'{}'						{ [$1] }
-|	Code '{}'					{ $1 ++ [$2] }
+:	'{code}'					{ [$1] }
+|	Code '{code}'					{ $1 ++ [$2] }
 
 Pragmas :: { [NonTerm] }
 Pragmas
@@ -72,10 +73,10 @@ Pragma
 :	'%expect' LIT_INTEGER				{ Fix $ PragmaExpect $2 }
 |	'%name' ID_NAME ID_NAME				{ Fix $ PragmaName $2 $3 }
 |	'%errorhandlertype' ID_NAME			{ Fix $ PragmaErrorHandlerType $2 }
-|	'%error' '{}'					{ Fix $ PragmaError $2 }
-|	'%lexer' '{}' '{}'				{ Fix $ PragmaLexer $2 $3 }
-|	'%monad' '{}'					{ Fix $ PragmaMonad $2 }
-|	'%tokentype' '{}'				{ Fix $ PragmaTokenType $2 }
+|	'%error' '{code}'				{ Fix $ PragmaError $2 }
+|	'%lexer' '{code}' '{code}'			{ Fix $ PragmaLexer $2 $3 }
+|	'%monad' '{code}'				{ Fix $ PragmaMonad $2 }
+|	'%tokentype' '{code}'				{ Fix $ PragmaTokenType $2 }
 |	'%token' Tokens					{ Fix $ PragmaToken $2 }
 |	'%left' TokenNames				{ Fix $ PragmaLeft $2 }
 |	'%right' TokenNames				{ Fix $ PragmaRight $2 }
@@ -92,7 +93,7 @@ Tokens
 
 Token :: { NonTerm }
 Token
-:	TokenName '{}'					{ Fix $ Token $1 $2 }
+:	TokenName '{code}'				{ Fix $ Token $1 $2 }
 
 TokenName :: { Term }
 TokenName
@@ -110,7 +111,7 @@ Rule
 
 RuleType :: { NonTerm }
 RuleType
-:	ID_NAME '::' '{}'				{ Fix $ RuleType $1 $3 }
+:	ID_NAME '::' '{code}'				{ Fix $ RuleType $1 $3 }
 
 RuleDefn :: { NonTerm }
 RuleDefn
@@ -123,7 +124,9 @@ RuleLines
 
 RuleLine :: { NonTerm }
 RuleLine
-:	TokenNames '{}'					{ Fix $ RuleLine $1 $2 }
+:	'{code}'					{ Fix $ RuleLine [] $1 }
+|	TokenNames '{code}'				{ Fix $ RuleLine $1 $2 }
+|	TokenNames '%prec' ID_NAME '{code}'		{ Fix $ RuleLine $1 $4 }
 
 
 {

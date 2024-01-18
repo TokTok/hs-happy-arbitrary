@@ -17,6 +17,7 @@ data LexemeClass
     | KwLexer
     | KwMonad
     | KwName
+    | KwPrec
     | KwRight
     | KwToken
     | KwTokentype
