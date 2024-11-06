@@ -1,5 +1,5 @@
 name:          happy-arbitrary
-version:       0.0.1
+version:       0.0.2
 synopsis:      Token list generator for arbitrary Happy grammars.
 homepage:      https://toktok.ltd/
 license:       GPL-3

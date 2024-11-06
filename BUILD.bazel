@@ -81,7 +81,7 @@ haskell_library(
     ),
     src_strip_prefix = "src",
     tags = ["no-cross"],
-    version = "0.0.1",
+    version = "0.0.2",
     visibility = ["//visibility:public"],
     deps = [
         ":ast",
