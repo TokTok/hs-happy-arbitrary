@@ -10,7 +10,10 @@ haskell_library(
     name = "ast",
     srcs = ["src/Language/Happy/Ast.hs"],
     src_strip_prefix = "src",
-    tags = ["no-cross"],
+    tags = [
+        "haskell",
+        "no-cross",
+    ],
     visibility = ["//hs-happy-arbitrary:__subpackages__"],
     deps = [
         "//third_party/haskell:aeson",
@@ -32,7 +35,10 @@ haskell_library(
         ":Lexer",
     ],
     src_strip_prefix = "src",
-    tags = ["no-cross"],
+    tags = [
+        "haskell",
+        "no-cross",
+    ],
     visibility = ["//hs-happy-arbitrary:__subpackages__"],
     deps = [
         "//third_party/haskell:aeson",
@@ -54,7 +60,10 @@ haskell_library(
     extra_srcs = ["src/Language/Happy/Parser.y"],
     ghcopts = ["-DSOURCE=\"$(location src/Language/Happy/Parser.y)\""],
     src_strip_prefix = "src",
-    tags = ["no-cross"],
+    tags = [
+        "haskell",
+        "no-cross",
+    ],
     visibility = ["//hs-happy-arbitrary:__subpackages__"],
     deps = [
         ":ast",
@@ -80,7 +89,10 @@ haskell_library(
         ],
     ),
     src_strip_prefix = "src",
-    tags = ["no-cross"],
+    tags = [
+        "haskell",
+        "no-cross",
+    ],
     version = "0.0.2",
     visibility = ["//visibility:public"],
     deps = [
