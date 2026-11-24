@@ -1,5 +1,5 @@
 name:          happy-arbitrary
-version:       0.0.2
+version:       0.0.3
 synopsis:      Random programs for testing parsers made with Happy and Alex
 homepage:      https://toktok.ltd/
 license:       GPL-3
