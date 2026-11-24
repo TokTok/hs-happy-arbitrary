@@ -5,6 +5,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE StrictData         #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
+-- | Lexes Happy @.y@ files.
 module Language.Happy.Lexer
     ( Alex
     , AlexPosn (..)
@@ -47,6 +48,8 @@ tokens :-
 <0>		"%lexer"				{ mkL KwLexer }
 <0>		"%monad"				{ mkL KwMonad }
 <0>		"%name"					{ mkL KwName }
+<0>		"%nonassoc"				{ mkL KwNonassoc }
+<0>		"%partial"				{ mkL KwPartial }
 <0>		"%prec"					{ mkL KwPrec }
 <0>		"%right"				{ mkL KwRight }
 <0>		"%token"				{ mkL KwToken }
@@ -55,6 +58,9 @@ tokens :-
 <0>		"%%"					{ mkL PctPercentPercent }
 <0>		"::"					{ mkL PctColonColon }
 <0>		":"					{ mkL PctColon }
+<0>		","					{ mkL PctComma }
+<0>		"("					{ mkL PctLParen }
+<0>		")"					{ mkL PctRParen }
 <0>		"|"					{ mkL PctPipe }
 
 <0>		"--"\n					;
@@ -73,6 +79,7 @@ deriving instance Generic AlexPosn
 instance FromJSON AlexPosn
 instance ToJSON AlexPosn
 
+-- | A token of a Happy file: where it is, what kind it is, and its text.
 data Lexeme text = L AlexPosn LexemeClass text
     deriving (Eq, Show, Generic, Functor, Foldable, Traversable)
 
@@ -102,6 +109,7 @@ lexemeLine (L (AlexPn _ l _) _ _) = l
 alexEOF :: Alex (Lexeme Text)
 alexEOF = return (L (AlexPn 0 0 0) Eof Text.empty)
 
+-- | Returns the tokens of a Happy file.
 alexScanTokens :: LBS.ByteString -> Either String [Lexeme Text]
 alexScanTokens str =
     runAlex str $ loop []

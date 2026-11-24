@@ -2,6 +2,7 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+-- | Parses Happy @.y@ files: @runAlex text parseGrammar@.
 module Language.Happy.Parser
     ( parseGrammar
     , source
@@ -39,6 +40,8 @@ import           Language.Happy.Tokens (LexemeClass (..))
     '%lexer'			{ L _ KwLexer			_ }
     '%monad'			{ L _ KwMonad			_ }
     '%name'			{ L _ KwName			_ }
+    '%nonassoc'		{ L _ KwNonassoc		_ }
+    '%partial'			{ L _ KwPartial			_ }
     '%prec'			{ L _ KwPrec			_ }
     '%right'			{ L _ KwRight			_ }
     '%token'			{ L _ KwToken			_ }
@@ -47,6 +50,9 @@ import           Language.Happy.Tokens (LexemeClass (..))
     '%%'			{ L _ PctPercentPercent		_ }
     '::'			{ L _ PctColonColon		_ }
     ':'				{ L _ PctColon			_ }
+    ','				{ L _ PctComma			_ }
+    '('				{ L _ PctLParen			_ }
+    ')'				{ L _ PctRParen			_ }
     '|'				{ L _ PctPipe			_ }
 
     LIT_STRING			{ L _ LitString			_ }
@@ -71,15 +77,19 @@ Pragmas
 Pragma :: { NonTerm }
 Pragma
 :	'%expect' LIT_INTEGER				{ Fix $ PragmaExpect $2 }
-|	'%name' ID_NAME ID_NAME				{ Fix $ PragmaName $2 $3 }
+|	'%name' ID_NAME					{ Fix $ PragmaName $2 Nothing }
+|	'%name' ID_NAME ID_NAME				{ Fix $ PragmaName $2 (Just $3) }
+|	'%partial' ID_NAME				{ Fix $ PragmaPartial $2 Nothing }
+|	'%partial' ID_NAME ID_NAME			{ Fix $ PragmaPartial $2 (Just $3) }
 |	'%errorhandlertype' ID_NAME			{ Fix $ PragmaErrorHandlerType $2 }
 |	'%error' '{code}'				{ Fix $ PragmaError $2 }
 |	'%lexer' '{code}' '{code}'			{ Fix $ PragmaLexer $2 $3 }
-|	'%monad' '{code}'				{ Fix $ PragmaMonad $2 }
+|	'%monad' Code					{ Fix $ PragmaMonad $2 }
 |	'%tokentype' '{code}'				{ Fix $ PragmaTokenType $2 }
 |	'%token' Tokens					{ Fix $ PragmaToken $2 }
 |	'%left' TokenNames				{ Fix $ PragmaLeft $2 }
 |	'%right' TokenNames				{ Fix $ PragmaRight $2 }
+|	'%nonassoc' TokenNames				{ Fix $ PragmaNonassoc $2 }
 
 TokenNames :: { [Term] }
 TokenNames
@@ -107,7 +117,8 @@ Rules
 
 Rule :: { NonTerm }
 Rule
-:	RuleType RuleDefn				{ Fix $ Rule $1 $2 }
+:	RuleType					{ $1 }
+|	RuleDefn					{ $1 }
 
 RuleType :: { NonTerm }
 RuleType
@@ -115,7 +126,13 @@ RuleType
 
 RuleDefn :: { NonTerm }
 RuleDefn
-:	ID_NAME ':' RuleLines				{ Fix $ RuleDefn $1 $3 }
+:	ID_NAME ':' RuleLines				{ Fix $ RuleDefn $1 [] $3 }
+|	ID_NAME '(' RuleParams ')' ':' RuleLines	{ Fix $ RuleDefn $1 $3 $6 }
+
+RuleParams :: { [Term] }
+RuleParams
+:	ID_NAME						{ [$1] }
+|	RuleParams ',' ID_NAME				{ $1 ++ [$3] }
 
 RuleLines :: { [NonTerm] }
 RuleLines
@@ -125,9 +142,24 @@ RuleLines
 RuleLine :: { NonTerm }
 RuleLine
 :	'{code}'					{ Fix $ RuleLine [] $1 }
-|	TokenNames '{code}'				{ Fix $ RuleLine $1 $2 }
-|	TokenNames '%prec' ID_NAME '{code}'		{ Fix $ RuleLine $1 $4 }
+|	Symbols '{code}'				{ Fix $ RuleLine $1 $2 }
+|	Symbols '%prec' ID_NAME '{code}'		{ Fix $ RuleLine $1 $4 }
 
+Symbols :: { [NonTerm] }
+Symbols
+:	Symbol						{ [$1] }
+|	Symbols Symbol					{ $1 ++ [$2] }
+
+Symbol :: { NonTerm }
+Symbol
+:	ID_NAME						{ Fix $ Symbol $1 [] }
+|	LIT_STRING					{ Fix $ Symbol $1 [] }
+|	ID_NAME '(' SymbolArgs ')'			{ Fix $ Symbol $1 $3 }
+
+SymbolArgs :: { [NonTerm] }
+SymbolArgs
+:	Symbol						{ [$1] }
+|	SymbolArgs ',' Symbol				{ $1 ++ [$3] }
 
 {
 type Term = Lexeme Text
@@ -141,6 +173,7 @@ parseError (L (AlexPn _ line col) c t, options) =
 lexwrap :: (Lexeme Text -> Alex a) -> Alex a
 lexwrap = (alexMonadScan >>=)
 
+-- | This parser's own grammar, if the build put it in (Bazel does).
 source :: BS.ByteString
 #ifdef SOURCE
 source = $(embedFile SOURCE)

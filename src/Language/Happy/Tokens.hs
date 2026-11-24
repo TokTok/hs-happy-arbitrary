@@ -7,6 +7,7 @@ module Language.Happy.Tokens
 import           Data.Aeson   (FromJSON, ToJSON)
 import           GHC.Generics (Generic)
 
+-- | The kinds of tokens in a Happy file.
 data LexemeClass
     = IdName
 
@@ -17,6 +18,8 @@ data LexemeClass
     | KwLexer
     | KwMonad
     | KwName
+    | KwNonassoc
+    | KwPartial
     | KwPrec
     | KwRight
     | KwToken
@@ -24,8 +27,11 @@ data LexemeClass
 
     | PctColon
     | PctColonColon
+    | PctComma
+    | PctLParen
     | PctPercentPercent
     | PctPipe
+    | PctRParen
 
     | LitCode
     | LitInteger
